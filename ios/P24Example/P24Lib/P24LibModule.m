@@ -16,6 +16,11 @@ P24ProtocolHandler* p24Handler;
 
 RCT_EXPORT_MODULE();
 
+RCT_EXPORT_METHOD(setCertificatePinningEnabled:(NSNumber * _Nonnull) isEnabled)
+{
+  [P24SdkConfig setCertificatePinningEnabled:[isEnabled boolValue]];
+}
+
 RCT_EXPORT_METHOD(startTrnRequestWithParams:(NSDictionary*)params callback:(RCTResponseSenderBlock)callback)
 {
   
@@ -27,7 +32,6 @@ RCT_EXPORT_METHOD(startTrnRequestWithParams:(NSDictionary*)params callback:(RCTR
   p24Handler.rctCallback = callback;
   P24TrnRequestParams* trnParams = [[P24TrnRequestParams alloc] initWithToken:params[@"token"]];
   trnParams.sandbox = params[@"isSandbox"];
-  trnParams.settings = [P24LibModule settingsFromParams: params[@"settingsParams"]];
   
   dispatch_sync(dispatch_get_main_queue(), ^{
     [P24 startTrnRequest:trnParams inViewController:[P24LibModule rootViewController] delegate:p24Handler];
@@ -49,7 +53,6 @@ RCT_EXPORT_METHOD(startTrnDirectWithParams:(NSDictionary*)params callback:(RCTRe
   
   P24TrnDirectParams* trnParams = [[P24TrnDirectParams alloc] initWithTransactionParams:trasaction];
   trnParams.sandbox = [@"true" isEqualToString:params[@"isSandbox"]];
-  trnParams.settings = [P24LibModule settingsFromParams: params[@"settingsParams"]];
   
   dispatch_sync(dispatch_get_main_queue(), ^{
     [P24 startTrnDirect:trnParams inViewController:[P24LibModule rootViewController] delegate:p24Handler];
@@ -68,7 +71,6 @@ RCT_EXPORT_METHOD(startExpressWithParams:(NSDictionary*)params callback:(RCTResp
   p24Handler.rctCallback = callback;
   
   P24ExpressParams* express = [[P24ExpressParams alloc] initWithUrl:params[@"url"]];
-  express.settings = [P24LibModule settingsFromParams: params[@"settingsParams"]];
   
   dispatch_sync(dispatch_get_main_queue(), ^{
     [P24 startExpress:express inViewController:[P24LibModule rootViewController] delegate:p24Handler];
@@ -127,13 +129,6 @@ RCT_EXPORT_METHOD(startExpressWithParams:(NSDictionary*)params callback:(RCTResp
 + (void) paymentClosed {
   p24Handler = nil;
   p24 = nil;
-}
-
-+ (P24SettingsParams*) settingsFromParams: (NSDictionary*) dictionary {
-  P24SettingsParams* settings = [P24SettingsParams new];
-  settings.saveBankCredentials = dictionary[@"saveBankCredentials"];
-  settings.enableBanksRwd = dictionary[@"enableBanksRwd"];
-  return settings;
 }
 
 + (UIViewController*) rootViewController {
